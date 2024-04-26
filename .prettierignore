@@ -1,0 +1,20 @@
+# Files ignored by Prettier, see https://prettier.io/docs/en/ignore.html
+
+# Output
+dist/
+
+# Dependencies
+node_modules/
+
+# Tests
+coverage/
+
+# Configuration
+package.json
+package-lock.json
+.idea/
+.eslintrc.cjs
+.gitignore
+next.config.mjs
+.prettierignore
+postcss.config.js
