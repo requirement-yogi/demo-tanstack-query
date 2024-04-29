@@ -1,4 +1,5 @@
 import {ReactNode} from "react";
+import Link from "next/link";
 
 /**
  * Home page for the application
@@ -48,6 +49,22 @@ export default function Home() {
                 </ListItem>
                 <ListItem>
                     `prefetch` - Post details are loaded in the background when hovering over a post "Read more" link.
+                </ListItem>
+            </List>
+            <SubTitle>Learn more</SubTitle>
+            <List>
+                <ListItem>
+                    <Link href={"https://nextjs.org/docs"} className={"text-sky-400"}>
+                        Next js documentation
+                    </Link>
+                </ListItem>
+                <ListItem>
+                    <Link
+                        href={"https://tanstack.com/query/v4/docs/framework/react/overview"}
+                        className={"text-sky-400"}
+                    >
+                        TanStack Query (v4) documentation
+                    </Link>
                 </ListItem>
             </List>
         </div>
