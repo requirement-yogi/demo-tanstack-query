@@ -2,6 +2,8 @@ import { type PostType } from "@/server/data/post";
 import { Button, Typography } from "@material-tailwind/react";
 import Link from "next/link";
 import useVanilla from "@/hooks/isVanilla";
+import { useQueryClient } from "@tanstack/react-query";
+import { PostAPI } from "@/api";
 
 export type Post = {
     id: number;
@@ -73,17 +75,50 @@ const PostContent = ({ content }: { content: PostWithContent["content"] }) => {
 
 const PostComponent = ({ post }: PostComponentProps) => {
     const isVanilla = useVanilla();
+
     return (
         <div className={"my-6 border-2 border-b-gray-700 p-4 flex flex-col w-96"}>
             <PostTitle title={post.title} />
             <PostDate date={post.date} />
             <PostTypeComponent type={post.type} />
-            <Link href={`/${isVanilla ? "vanilla" : "tanstack"}/post/${post.id}`} className={"my-2"}>
-                <Button variant={"text"} className={"hover:text-sky-200"}>
-                    Read more
-                </Button>
-            </Link>
+            {isVanilla ? <PostDetailsLink id={post.id} /> : <PostDetailsWithPrefetch id={post.id} />}
         </div>
+    );
+};
+
+const PostDetailsLink = ({ id }: { id: Post["id"] }) => {
+    const isVanilla = useVanilla();
+    return (
+        <Link href={`/${isVanilla ? "vanilla" : "tanstack"}/post/${id}`} className={"my-2"}>
+            <Button variant={"text"} className={"hover:text-sky-200"}>
+                Read more
+            </Button>
+        </Link>
+    );
+};
+
+/**
+ * Prefetches the post details when hovering over the "Read more" button.
+ */
+const PostDetailsWithPrefetch = ({ id }: { id: Post["id"] }) => {
+    const queryClient = useQueryClient();
+
+    const prefetch = async () => {
+        await queryClient.prefetchQuery(["getPost", { id }], () => PostAPI.getPost(id), {
+            staleTime: 1000 * 60 * 5, // Only prefetch if older than 5 minutes
+        });
+    };
+
+    const onHover = () => {
+        void prefetch();
+    };
+
+    return (
+        <Link href={`/tanstack/post/${id}`} className={"my-2"}>
+            <Button onMouseEnter={onHover} variant={"text"} className={"hover:text-sky-200"}>
+                Read more
+            </Button>
+        </Link>
     );
 };
 
