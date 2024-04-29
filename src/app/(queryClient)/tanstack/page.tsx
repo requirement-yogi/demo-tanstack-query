@@ -25,7 +25,10 @@ export default function TanstackPage() {
         error,
         isError,
         isSuccess,
-    } = useQuery(["getPosts", { offset: pagination.offset }], () => PostAPI.getPosts(pagination));
+    } = useQuery(["getPosts", { offset: pagination.offset }], {
+        queryFn: () => PostAPI.getPosts(pagination),
+        refetchInterval: 5 * 1000, // Automatically refetch every 5 seconds
+    });
 
     const pageCount = isSuccess ? Math.floor(postSearch.totalSize / pagination.limit) : 0;
 
