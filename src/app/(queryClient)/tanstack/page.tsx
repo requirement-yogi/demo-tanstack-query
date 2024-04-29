@@ -1,41 +1,57 @@
 "use client";
 
 import { type Post } from "@/components/Post";
-import { useState } from "react";
+import { useEffect } from "react";
 import { PostAPI } from "@/api";
 import PostTimeline from "@/components/PostTimeline";
 import PostCreateFormTanstack from "@/app/(queryClient)/tanstack/PostCreateFormTanstack";
-import { useQuery } from "@tanstack/react-query";
+import { QueryFunctionContext, useInfiniteQuery } from "@tanstack/react-query";
 import ErrorComponent from "@/components/ErrorComponent";
-import Pagination from "@/components/Pagination";
+import { useInView } from "react-intersection-observer";
+import { Button } from "@material-tailwind/react";
+
+const pageSize = 10;
 
 /**
  * Renders a page that displays a list of posts.
  */
 export default function TanstackPage() {
-    const [pagination, setPagination] = useState({
-        limit: 10,
-        offset: 0,
-        totalSize: 0,
-    });
+    const { ref, inView } = useInView({ rootMargin: "200px" });
 
     const {
         data: postSearch,
         isLoading,
         error,
         isError,
-        isSuccess,
-    } = useQuery(["getPosts", { offset: pagination.offset }], () => PostAPI.getPosts(pagination));
-
-    const pageCount = isSuccess ? Math.floor(postSearch.totalSize / pagination.limit) : 0;
+        fetchNextPage,
+    } = useInfiniteQuery({
+        queryKey: ["getPosts"],
+        // Automatic type inference did not work, string[] is the query key, number is the page param returned by getNextPageParam
+        queryFn: (params: QueryFunctionContext<string[], number>) => {
+            const offset = params.pageParam ?? 0;
+            return PostAPI.getPosts({ offset, limit: pageSize });
+        },
+        getNextPageParam: (lastPage, allPages) => {
+            const offset = allPages.length * pageSize;
+            if (lastPage.totalSize > offset) {
+                return offset;
+            }
+            // Return undefined to indicate no more pages
+            return undefined;
+        },
+    });
 
     const onSubmit = (post: Post) => {
         console.log("Post created", post);
     };
 
-    const onPageChange = (page: number) => {
-        setPagination((prevState) => ({ ...prevState, offset: page * pagination.limit }));
-    };
+    useEffect(() => {
+        if (inView) {
+            void fetchNextPage();
+        }
+    }, [inView]);
+
+    const posts = postSearch?.pages.flatMap((page) => page.results) || [];
 
     return (
         <div className={"p-4 lg:p-x-14 lg:py-8 flex flex-col place-items-center"}>
@@ -49,12 +65,15 @@ export default function TanstackPage() {
                     <ErrorComponent error={error} />
                 ) : (
                     <>
-                        <PostTimeline posts={postSearch.results} />
+                        <PostTimeline posts={posts} />
                         {/*<PostTimeline posts={postSearch.results} />*/}
                     </>
                 )}
             </div>
-            <Pagination pageCount={pageCount} onPageChange={onPageChange} />
+
+            <Button ref={ref} color={"blue-gray"} className={"mx-auto mt-4"}>
+                Load more
+            </Button>
         </div>
     );
 }
