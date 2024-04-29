@@ -1,5 +1,5 @@
 import { PostNotFoundException } from "@/server/utils/exceptions";
-import { CreatePostSchema, Post, type PostType, UpdatePostSchema } from "@/server/data/post";
+import { CreatePost, CreatePostSchema, Post, type PostType, UpdatePostSchema } from "@/server/data/post";
 import { LoremIpsum } from "lorem-ipsum";
 import { Pageable } from "@/server/utils/pageable";
 import { env } from "@/utils/env.mjs";
@@ -29,17 +29,17 @@ class Database {
         return this.seed(database);
     }
 
-    public static createRandomPost(id: number) {
+    private static createRandomPost(): CreatePost {
         const title = lorem.generateWords(3);
         const content = lorem.generateParagraphs(3);
         const type = Math.random() < 0.3 ? "NEWS" : Math.random() < 0.5 ? "BLOG" : "TUTORIAL";
 
-        return new Post(id, title, content, type);
+        return { title, content, type };
     }
 
     private static seed(database: Database) {
         for (let i = 0; i < env.INITIAL_POST_COUNT; i++) {
-            database.addPost(this.createRandomPost(i));
+            database.addPost(this.createRandomPost());
         }
         return database;
     }
@@ -96,6 +96,10 @@ class Database {
             this.posts.filter((post) => post.type === type),
             pageable,
         );
+    }
+
+    addRandomPost() {
+        return this.addPost(Database.createRandomPost());
     }
 }
 

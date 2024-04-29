@@ -10,7 +10,8 @@
     "prettier:fix": "prettier --write .",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "test": "vitest"
+    "test": "vitest",
+    "simulate": "node ./scripts/simulateUser.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.3",

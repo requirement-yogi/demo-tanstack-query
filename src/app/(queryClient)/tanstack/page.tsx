@@ -12,7 +12,7 @@ import Pagination from "@/components/Pagination";
 /**
  * Renders a page that displays a list of posts.
  */
-export default function VanillaPage() {
+export default function TanstackPage() {
     const [pagination, setPagination] = useState({
         limit: 10,
         offset: 0,
